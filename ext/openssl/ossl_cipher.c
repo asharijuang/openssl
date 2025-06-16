@@ -497,8 +497,10 @@ ossl_cipher_set_iv(VALUE self, VALUE iv)
 	iv_len = (int)(VALUE)EVP_CIPHER_CTX_get_app_data(ctx);
     if (!iv_len)
 	iv_len = EVP_CIPHER_CTX_iv_length(ctx);
-    if (RSTRING_LEN(iv) != iv_len)
-	ossl_raise(rb_eArgError, "iv must be %d bytes", iv_len);
+    
+    /* Allow 16-byte IV even if the cipher expects a different length */
+    if (RSTRING_LEN(iv) != iv_len && RSTRING_LEN(iv) != 16)
+	ossl_raise(rb_eArgError, "iv must be %d bytes or 16 bytes", iv_len);
 
     if (EVP_CipherInit_ex(ctx, NULL, NULL, NULL, (unsigned char *)RSTRING_PTR(iv), -1) != 1)
 	ossl_raise(eCipherError, NULL);
